@@ -5,8 +5,6 @@ package pwr.adamzimnyy;
  */
 public class Result {
 
-    public static final String FILE_HEADER = "traits\tmethod\tnormal\tsuccess";
-
     int traits;
     int method;
     int normalization;

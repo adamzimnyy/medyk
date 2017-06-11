@@ -31,8 +31,8 @@ public class Main {
     final static int METHOD_MANHATTAN = 1;
 
     final static int NONE = 0;
-    final static int ZERO_MEAN = 1;
-    final static int MIN_MAX = 2;
+    final static int STANDARD = 1;
+    final static int SCALE = 2;
 
 
     static List<DataEntry> dataSet = new ArrayList<>();
@@ -46,8 +46,71 @@ public class Main {
             27, 33, 9, 42, 21, 15, 34, 12, 49, 25,
             1, 5, 29, 17, 45, 2, 28, 10, 30,
     };
+    static List<String> traitNames = new ArrayList<>();
 
     public static void main(String[] args) {
+
+
+        traitNames.add("age	");
+        traitNames.add("sex	");
+        traitNames.add("pain_location	");
+        traitNames.add("chest_pain_radiation	");
+        traitNames.add("pain_character	");
+        traitNames.add("onset_of_pain	");
+        traitNames.add("number_of_hours_since_onset	");
+        traitNames.add("duration_of_the_last_episode	");
+        traitNames.add("nausea	");
+        traitNames.add("diaphoresis	");
+        traitNames.add("palpitations	");
+        traitNames.add("dyspnea	");
+        traitNames.add("dizziness/syncope	");
+        traitNames.add("burping	");
+        traitNames.add("palliative_factors	");
+        traitNames.add("prior_chest_pain_of_this_type	");
+        traitNames.add("physician_consulted_for_prior_pain	");
+        traitNames.add("prior_pain_related_to_heart	");
+        traitNames.add("prior_pain_due_to_mi	");
+        traitNames.add("prior_pain_due_to_angina_prectoris	");
+        traitNames.add("prior_mi	");
+        traitNames.add("prior_angina_prectoris	");
+        traitNames.add("prior_atypical_chest_pain	");
+        traitNames.add("congestive_heart_failure	");
+        traitNames.add("peripheral_vascular_disease	");
+        traitNames.add("hiatal_hernia	");
+        traitNames.add("hypertension	");
+        traitNames.add("diabetes	");
+        traitNames.add("smoker	");
+        traitNames.add("diuretics	");
+        traitNames.add("nitrates	");
+        traitNames.add("beta_blockers	");
+        traitNames.add("digitalis	");
+        traitNames.add("nonsteroidal_anti-inflammatory	");
+        traitNames.add("antacids/h_blockers	");
+        traitNames.add("systolic_blood_pressure	");
+        traitNames.add("diastolic_blood_pressure	");
+        traitNames.add("heart_rate	");
+        traitNames.add("respiration_rate	");
+        traitNames.add("rales	");
+        traitNames.add("cyanosis	");
+        traitNames.add("pallor	");
+        traitNames.add("systolic_murmur	");
+        traitNames.add("diastolic_murmur	");
+        traitNames.add("oedema	");
+        traitNames.add("_gallop	");
+        traitNames.add("s_gallop	");
+        traitNames.add("chest_wall_tenderness	");
+        traitNames.add("diaphoresis	");
+        traitNames.add("new_q_wave	");
+        traitNames.add("any_q_wave	");
+        traitNames.add("new_st_segment_elevation	");
+        traitNames.add("any_st_segment_elevation	");
+        traitNames.add("new_st_segment_depression	");
+        traitNames.add("any_st_segment_depression	");
+        traitNames.add("new_t_wave_inversion	");
+        traitNames.add("any_t_wave_inversion	");
+        traitNames.add("new_intraventricular_conduction_defect	");
+        traitNames.add("any_intraventricular_conduction_defect	");
+
 
         for (int i = 0; i < transposed_files.length; i++) {
             File file = new File(transposed_files[i]);
@@ -69,7 +132,10 @@ public class Main {
         for (int i = 0; i < diagnoses.length; i++) {
             doubles[i] = diagnoses[i];
         }
-        System.out.println("     standard: " + Arrays.toString(standardizeData(doubles, MIN_MAX)));
+        System.out.println("     standard: " + Arrays.toString(standardizeData(doubles, SCALE)));
+
+
+        System.out.println("     standard: " + Arrays.toString(standardizeData(new double[]{5, 6, 7, 8, 9, 10}, STANDARD)));
 
         writeToFile("output.txt");
 
@@ -208,9 +274,6 @@ public class Main {
             meanEntry.setData(avgData);
             means.put(diagnosis, meanEntry);
         }
-       /* for (int i = 0; i < 5; i++) {
-            System.out.println(Arrays.toString(means.get(i+1).getData()));
-        }*/
         return means;
     }
 
@@ -234,7 +297,7 @@ public class Main {
                 //liczba cech
                 for (int traits = 1; traits <= entrySize; traits++) {
                     if (traits == 1) System.out.print("\t\t");
-                    if(traits %10 == 0)System.out.print(traits);
+                    if (traits % 10 == 0) System.out.print(traits);
                     System.out.print(".");
                     if (traits == entrySize) System.out.println();
                     double successRate;
@@ -307,14 +370,15 @@ public class Main {
                         "\nTesting took " + time + " ms." +
                         " \nTotal results: " + results.size() +
                         " \nPrediction frequency: " + Arrays.toString(predictionStats) +
-                        " \n            standard: " + Arrays.toString(standardizeData(doubles, MIN_MAX)) + "\n\n\n"
+                        " \n            standard: " + Arrays.toString(standardizeData(doubles, SCALE)) + "\n\n\n"
 
         );
     }
 
+    static List<Rating> ratings = new ArrayList<>();
+
     public static void findTraitPriority() {
         int global = 100;
-        List<Rating> ratings = new ArrayList<>();
         Map<Integer, Map<Double, Double>> map = new HashMap<>();
         for (int i = 1; i < 6; i++) {
             map.put(i, new HashMap<>());
@@ -389,14 +453,17 @@ public class Main {
             Rating r = new Rating();
             r.rating = rating;
             r.trait = trait;
+            r.name = traitNames.get(trait);
             ratings.add(r);
         }
 
+        // posortuj po ocenie, przypisz priorytety po kolei
         ratings.sort((o1, o2) -> new Double(o2.rating).compareTo(o1.rating));
         for (int prio = 0; prio < entrySize; prio++) {
             ratings.get(prio).priority = prio;
         }
 
+        // posortuj w kolejnosc domysla, spisz priorytety
         ratings.sort((o1, o2) -> new Integer(o1.trait).compareTo(o2.trait));
 
         for (int i = 0; i < entrySize; i++) {
@@ -457,45 +524,52 @@ public class Main {
         return distance;
     }
 
-    public static double[] standardizeData(double[] data, int mode) {
-        System.out.println("Standardize data in mode " + mode);
 
+    public static double getDistance(double[] a, double[] b, int method) {
+        double distance = 0;
+        if (method == METHOD_EUKLIDES) {
+            double diff[] = subArray(a, b);
+            for (int i = 0; i < diff.length; i++) {
+                distance += Math.pow(diff[i], 2);
+            }
+            distance = Math.sqrt(distance);
+
+        } else if (method == METHOD_MANHATTAN) {
+            double sum[] = subArray(a, b);
+            for (int i = 0; i < sum.length; i++) {
+                distance += Math.abs(sum[i]);
+            }
+        }
+        return distance;
+    }
+
+
+    public static double[] standardizeData(double[] data, int mode) {
         double[] result = new double[data.length];
         System.arraycopy(data, 0, result, 0, data.length);
 
-        if (mode == ZERO_MEAN) {
-            double mean = 0;
-            double std = 0;
+        if (mode == STANDARD) {
+            double mean, std, sum = 0, temp = 0;
+            for (double a : data)
+                sum += a;
+            mean = sum / data.length;
 
-            for (double aData : data) {
-                mean += aData;
-            }
-            mean = mean * data.length;
-
-            for (double aData : data) {
-                std += Math.pow(aData - mean, 2);
-            }
-            mean = mean * data.length;
-            std = Math.sqrt(std / data.length);
+            for (double a : data)
+                temp += (a - mean) * (a - mean);
+            std = Math.sqrt(temp / (data.length - 1));
 
             for (int i = 0; i < result.length; i++) {
                 result[i] = (result[i] - mean) / std;
             }
 
-        } else if (mode == MIN_MAX) {
-            double min = 999999;
+        } else if (mode == SCALE) {
+            double min = Double.MAX_VALUE;
             double max = 0;
-
             for (int j = 0; j < data.length; j++) {
-                if (max < result[j]) {
-                    max = result[j];
-                }
-                if (min > result[j]) {
-                    min = result[j];
-                }
+                max = max < result[j] ? result[j] : max;
+                min = min > result[j] ? result[j] : min;
             }
             for (int j = 0; j < data.length; j++) {
-
                 result[j] = (result[j] - min) / (max - min);
             }
         }
@@ -508,7 +582,7 @@ public class Main {
 
         List<DataEntry> result = new ArrayList<>(data);
 
-        if (mode == ZERO_MEAN) {
+        if (mode == STANDARD) {
             double[] mean = new double[entrySize];
             double[] std = new double[entrySize];
 
@@ -536,7 +610,7 @@ public class Main {
                     e.getData()[i] = (e.getData()[i] - mean[i]) / std[i];
                 }
             }
-        } else if (mode == MIN_MAX) {
+        } else if (mode == SCALE) {
             double min[] = new double[entrySize];
             double max[] = new double[entrySize];
             for (int j = 0; j < entrySize; j++) {
@@ -584,7 +658,7 @@ public class Main {
                 //liczba cech
                 for (int traits = 1; traits <= entrySize; traits++) {
                     if (traits == 1) System.out.print("\t\t");
-                    if(traits %10 == 0)System.out.print(traits);
+                    if (traits % 10 == 0) System.out.print(traits);
                     System.out.print(".");
                     if (traits == entrySize) System.out.println();
                     double successRate;
@@ -618,8 +692,8 @@ public class Main {
                                         diagnoses[nei.getDiagnosis()]++;
                                     }
                                     int max = 0;
-                                    int prediction = new Random().nextInt(5) + 1;
-                                    for (int diag = 0; diag < 6; diag++) {
+                                    int prediction = 0;
+                                    for (int diag = 1; diag < 6; diag++) {
                                         if (diagnoses[diag] > max) {
                                             max = diagnoses[diag];
                                             prediction = diag;
@@ -659,7 +733,7 @@ public class Main {
                         "\nTesting took " + time + " ms." +
                         " \nTotal results: " + results.size() +
                         " \nPrediction frequency: " + Arrays.toString(predictionStats) +
-                        " \n            standard: " + Arrays.toString(standardizeData(doubles, MIN_MAX)) + "\n\n\n"
+                        " \n            standard: " + Arrays.toString(standardizeData(doubles, SCALE)) + "\n\n\n"
 
         );
     }
